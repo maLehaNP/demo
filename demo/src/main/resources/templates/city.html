@@ -1,0 +1,9 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<h1 th:text="${city.city}"></h1>
+<img th:src="${city.imageUrl}" width="300">
+<p>Население: <span th:text="${city.population}"></span></p>
+<p>Время: <span th:text="${city.localTime}"></span></p>
+</body>
+</html>

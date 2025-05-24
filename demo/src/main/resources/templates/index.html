@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Главная</title>
+</head>
+<body>
+<!--<h1 th:text="${message}">Сообщение по умолчанию</h1>-->
+<form th:action="@{/search}" method="get">
+    <input type="text" name="query" placeholder="Найти город...">
+    <button type="submit">Поиск</button>
+</form>
+<div th:each="city : ${cities}">
+    <img th:src="${city.imageUrl}" width="100">
+    <h3 th:text="${city.city}"></h3>
+    <a th:href="@{/city/{id}(id=${city.id})}">Подробнее</a>
+</div>
+</body>
+</html>
+
+
+
+
+

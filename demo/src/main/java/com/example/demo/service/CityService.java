@@ -4,6 +4,7 @@ import com.example.demo.model.CityInfo;
 import com.example.demo.model.CityTime;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.BufferedReader;
@@ -15,12 +16,14 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Slf4j
 @Service
 public class CityService {
-
     private final List<CityInfo> cities = new ArrayList<>();
+    @Autowired
+    CityImageService cityImageService;
 
     @PostConstruct
     public void init() {
@@ -30,16 +33,19 @@ public class CityService {
             reader.readLine(); // пропустить заголовок
             while ((line = reader.readLine()) != null) {
                 String[] parts = line.split(",");
-                if (parts.length == 5) {
+                if (parts.length == 6) {
                     cities.add(new CityInfo(
-                            parts[0],
+                            Long.parseLong(parts[0]),
                             parts[1],
-                            Double.parseDouble(parts[2]),
+                            parts[2],
                             Double.parseDouble(parts[3]),
-                            parts[4],
+                            Double.parseDouble(parts[4]),
+                            parts[5],
                             null,  // временно, заполним позже
                             null,
-                            null
+                            null,
+                            1,
+                            null//cityImageService.getRandomCityImage(parts[1])
                     ));
                 }
             }
@@ -55,6 +61,14 @@ public class CityService {
     public CityInfo getCityByName(String name) {
         return cities.stream()
                 .filter(c -> c.getCity().equalsIgnoreCase(name))
+                .map(this::enrichCityWithTime)
+                .findFirst()
+                .orElse(null);
+    }
+
+    public CityInfo getCityById(Long id) {
+        return cities.stream()
+                .filter(c -> c.getId() == id)
                 .map(this::enrichCityWithTime)
                 .findFirst()
                 .orElse(null);
@@ -98,8 +112,8 @@ public class CityService {
             ZonedDateTime now = ZonedDateTime.now(ZoneId.of(city.getTimezone()));
             int localHour = now.getHour();
             int utcHour = Integer.parseInt(Instant.now().toString().substring(11, 13));
-            log.info("Local hour: {}", localHour);
-            log.info("UTC hour: {}", utcHour);
+//            log.info("Local hour: {}", localHour);
+//            log.info("UTC hour: {}", utcHour);
             String utc = String.valueOf(localHour - utcHour);
             utc = (utc.startsWith("-"))? utc : "+"+utc;
             city.setLocalTime(now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
@@ -110,5 +124,15 @@ public class CityService {
             city.setUtcTime("Unknown");
         }
         return city;
+    }
+
+    public List<CityInfo> searchCities(String query) {
+        List<CityInfo> results = new ArrayList<>();
+        for (CityInfo city : cities) {
+            if (Objects.equals(city.getCity(), query) || Objects.equals(city.getCountry(), query)) {
+                results.add(city);
+            }
+        }
+        return results;
     }
 }
